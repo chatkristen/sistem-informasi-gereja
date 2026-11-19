@@ -281,6 +281,12 @@ export interface ChurchEvent {
   location: string;
   pic_member_id?: string;
   pic_member_name?: string;
+  mc_member_id?: string;
+  mc_name?: string; // MC / Worship Leader
+  singers?: string[]; // SINGER (min 2 orang)
+  offering_officers?: string[]; // PETUGAS PERSEMBAHAN (min 2 orang)
+  ushers?: string[]; // ASER (PENERIMA TAMU) (min 2 orang)
+  multimedia_officers?: string[]; // MULTIMEDIA
   budget: number;
   description: string;
   status: 'SCHEDULED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';

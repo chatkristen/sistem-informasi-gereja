@@ -42,6 +42,9 @@ export async function POST(request: Request) {
     const pic = body.pic_member_id
       ? db.members.find((m) => m.id === body.pic_member_id)
       : null;
+    const mc = body.mc_member_id
+      ? db.members.find((m) => m.id === body.mc_member_id)
+      : null;
 
     const newEvent: ChurchEvent = {
       id: 'ev-' + Date.now(),
@@ -56,6 +59,22 @@ export async function POST(request: Request) {
       location: body.location || 'Sanctuary Gedung Utama',
       pic_member_id: body.pic_member_id || undefined,
       pic_member_name: pic?.full_name || body.pic_member_name,
+      mc_member_id: body.mc_member_id || undefined,
+      mc_name: mc?.full_name || body.mc_name || undefined,
+      singers: Array.isArray(body.singers)
+        ? body.singers.filter((s: string) => s && s.trim())
+        : undefined,
+      offering_officers: Array.isArray(body.offering_officers)
+        ? body.offering_officers.filter((s: string) => s && s.trim())
+        : undefined,
+      ushers: Array.isArray(body.ushers)
+        ? body.ushers.filter((s: string) => s && s.trim())
+        : undefined,
+      multimedia_officers: Array.isArray(body.multimedia_officers)
+        ? body.multimedia_officers.filter((s: string) => s && s.trim())
+        : body.multimedia_officers
+        ? [body.multimedia_officers]
+        : undefined,
       budget: Number(body.budget) || 0,
       description: body.description || '',
       status: body.status || 'SCHEDULED',

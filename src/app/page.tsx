@@ -375,6 +375,12 @@ export default function DashboardPage() {
                           {event.location}
                         </span>
                       </div>
+                      {(event.pic_member_name || event.mc_name) && (
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] text-navy-800 mt-1.5 font-semibold">
+                          {event.pic_member_name && <span>PIC: {event.pic_member_name}</span>}
+                          {event.mc_name && <span className="text-gold-600 font-bold">• MC: {event.mc_name}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
