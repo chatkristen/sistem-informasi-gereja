@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { InventoryItem, InventoryLoan, InventoryCategory } from '@/lib/types';
 import { formatCurrency, formatDateIndo } from '@/lib/utils';
 import { exportToExcel, exportToPDF } from '@/lib/export-utils';
@@ -45,6 +46,7 @@ export default function InventarisPage() {
     condition: 'BAIK' as any,
     location: 'Sanctuary Gedung Utama',
     pic_member_id: '',
+    photo_url: '',
   });
 
   const loadData = async () => {
@@ -111,6 +113,7 @@ export default function InventarisPage() {
           condition: 'BAIK',
           location: 'Sanctuary Gedung Utama',
           pic_member_id: '',
+          photo_url: '',
         });
         loadData();
       }
@@ -220,13 +223,28 @@ export default function InventarisPage() {
                         {ast.item_code}
                       </td>
 
-                      <td className="px-4 py-3.5 font-bold text-navy-950">
-                        {ast.name}
-                        {ast.purchase_price > 0 && (
-                          <p className="text-[10px] text-slate-400 font-normal">
-                            Harga: {formatCurrency(ast.purchase_price)}
-                          </p>
-                        )}
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-3">
+                          {ast.photo_url ? (
+                            <img
+                              src={ast.photo_url}
+                              alt={ast.name}
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-navy-50 text-navy-800 flex items-center justify-center shrink-0 border border-slate-200">
+                              <Box className="w-5 h-5 text-navy-600" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-navy-950">{ast.name}</p>
+                            {ast.purchase_price > 0 && (
+                              <p className="text-[10px] text-slate-400 font-normal">
+                                Harga: {formatCurrency(ast.purchase_price)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </td>
 
                       <td className="px-4 py-3.5 text-slate-600 font-medium">
@@ -337,6 +355,13 @@ export default function InventarisPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleCreateItem} className="space-y-4">
+          <ImageUpload
+            value={formData.photo_url}
+            onChange={(b64) => setFormData({ ...formData, photo_url: b64 })}
+            label="Foto Fisik Aset / Inventaris (Opsional)"
+            helperText="Unggah foto fisik barang (JPG/PNG). Foto dikompres otomatis dan disimpan ke database."
+          />
+
           <Input
             label="Nama Barang / Aset *"
             placeholder="Contoh: Digital Audio Mixer Behringer X32"

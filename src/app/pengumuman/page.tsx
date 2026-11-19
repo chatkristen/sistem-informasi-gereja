@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Announcement } from '@/lib/types';
 import { formatDateIndo } from '@/lib/utils';
 import {
@@ -35,6 +36,7 @@ export default function PengumumanPage() {
     content: '',
     target_audience: 'ALL' as any,
     department_id: '',
+    attachment_url: '',
   });
 
   const loadData = async () => {
@@ -82,7 +84,7 @@ export default function PengumumanPage() {
       if (json.success) {
         showToast('success', 'Dipublikasikan', `Pengumuman "${json.data.title}" berhasil disiarkan.`);
         setIsModalOpen(false);
-        setFormData({ title: '', content: '', target_audience: 'ALL', department_id: '' });
+        setFormData({ title: '', content: '', target_audience: 'ALL', department_id: '', attachment_url: '' });
         loadData();
       }
     } catch (err: any) {
@@ -149,6 +151,16 @@ export default function PengumumanPage() {
 
                 <h3 className="text-base font-extrabold text-navy-950">{anc.title}</h3>
 
+                {anc.attachment_url && (
+                  <div className="rounded-xl overflow-hidden max-h-60 border border-slate-200 bg-slate-100 flex items-center justify-center">
+                    <img
+                      src={anc.attachment_url}
+                      alt={anc.title}
+                      className="w-full h-full object-cover max-h-60"
+                    />
+                  </div>
+                )}
+
                 <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
                   {anc.content}
                 </p>
@@ -171,6 +183,13 @@ export default function PengumumanPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+          <ImageUpload
+            value={formData.attachment_url}
+            onChange={(b64) => setFormData({ ...formData, attachment_url: b64 })}
+            label="Foto Pamflet / Flyer Warta Acara (Opsional)"
+            helperText="Format JPG/PNG/WebP. Pamflet otomatis dikompresi dan disimpan ke basis data warta gereja."
+          />
+
           <Input
             label="Judul Pengumuman *"
             placeholder="Contoh: Pelaksanaan Ibadah Doa Malam & Puasa Jemaat"

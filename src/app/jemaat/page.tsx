@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Member, MemberStatus, Gender, FamilyRelation } from '@/lib/types';
 import { formatDateIndo, getMemberStatusBadge, getFamilyRelationBadge } from '@/lib/utils';
 import { exportToExcel, exportToPDF } from '@/lib/export-utils';
@@ -62,6 +63,7 @@ export default function JemaatPage() {
     status: 'ACTIVE' as MemberStatus,
     occupation: '',
     education: '',
+    photo_url: '',
     notes: '',
     is_confidential_notes: false,
   });
@@ -124,6 +126,7 @@ export default function JemaatPage() {
           status: 'ACTIVE',
           occupation: '',
           education: '',
+          photo_url: '',
           notes: '',
           is_confidential_notes: false,
         });
@@ -461,6 +464,13 @@ export default function JemaatPage() {
         maxWidth="2xl"
       >
         <form onSubmit={handleCreateMember} className="space-y-4">
+          <ImageUpload
+            value={formData.photo_url}
+            onChange={(base64) => setFormData({ ...formData, photo_url: base64 })}
+            label="Unggah Foto Profil Jemaat"
+            helperText="Pilih foto dari komputer/perangkat (JPG/PNG). Foto langsung dikonversi dan disimpan ke basis data."
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Nama Lengkap Jemaat *"

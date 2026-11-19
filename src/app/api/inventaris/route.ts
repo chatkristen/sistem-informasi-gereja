@@ -65,6 +65,7 @@ export async function POST(request: Request) {
       location: body.location || 'Gedung Utama',
       pic_member_id: body.pic_member_id || undefined,
       pic_member_name: pic?.full_name || body.pic_member_name,
+      photo_url: body.photo_url || undefined,
       status: 'AVAILABLE',
       created_at: new Date().toISOString(),
     };

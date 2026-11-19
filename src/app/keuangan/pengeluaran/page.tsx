@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { FinancialTransaction, FinancialAccount, FinancialCategory } from '@/lib/types';
 import {
   formatCurrency,
@@ -35,6 +36,7 @@ export default function PengeluaranPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewReceipt, setPreviewReceipt] = useState<{ number: string; url: string; title: string } | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -256,9 +258,21 @@ export default function PengeluaranPage() {
 
                       <td className="px-4 py-3.5">
                         {tx.receipt_url ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-navy-700 bg-navy-50 border border-navy-200 px-2 py-0.5 rounded">
-                            <Receipt className="w-3 h-3 text-navy-500" /> Terlampir
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewReceipt({
+                                number: tx.transaction_number,
+                                url: tx.receipt_url!,
+                                title: tx.description,
+                              })
+                            }
+                            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-800 bg-navy-50 hover:bg-navy-100 border border-navy-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer group"
+                            title="Klik untuk melihat bukti kuitansi"
+                          >
+                            <Receipt className="w-3.5 h-3.5 text-navy-600 group-hover:scale-110 transition-transform" />
+                            <span>Lihat Bukti</span>
+                          </button>
                         ) : (
                           <span className="text-slate-400 text-[11px] italic">Tidak ada</span>
                         )}
@@ -357,11 +371,11 @@ export default function PengeluaranPage() {
             </Select>
           </div>
 
-          <Input
-            label="Tautan Bukti Nota / Kuitansi (Opsional)"
-            placeholder="/receipts/nota-pembelian.pdf atau URL gambar"
+          <ImageUpload
             value={formData.receipt_url}
-            onChange={(e) => setFormData({ ...formData, receipt_url: e.target.value })}
+            onChange={(b64) => setFormData({ ...formData, receipt_url: b64 })}
+            label="Foto Bukti Nota / Kuitansi Pembayaran (Opsional)"
+            helperText="Format JPG/PNG/WebP. Foto bukti kuitansi dikompresi otomatis dan disimpan ke database untuk audit."
           />
 
           <div className="space-y-1">
@@ -385,6 +399,33 @@ export default function PengeluaranPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Preview Bukti Kuitansi */}
+      <Modal
+        isOpen={Boolean(previewReceipt)}
+        onClose={() => setPreviewReceipt(null)}
+        title={`Bukti Transaksi: ${previewReceipt?.number || ''}`}
+        subtitle={previewReceipt?.title || 'Dokumen kuitansi tersimpan di basis data'}
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <div className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-slate-900/95 flex items-center justify-center p-3">
+            {previewReceipt?.url && (
+              <img
+                src={previewReceipt.url}
+                alt={`Kuitansi ${previewReceipt.number}`}
+                className="max-w-full max-h-[55vh] object-contain rounded-lg shadow-lg"
+              />
+            )}
+          </div>
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-[11px] text-slate-400">Tersimpan dalam database transaksi gereja</span>
+            <Button variant="secondary" size="sm" onClick={() => setPreviewReceipt(null)}>
+              Tutup
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -7,6 +7,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import {
   formatDateIndo,
   formatCurrency,
@@ -33,6 +34,7 @@ import {
   DollarSign,
   Edit2,
   Download,
+  Camera,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -68,6 +70,7 @@ export default function MemberDetailPage() {
             status: json.data.status,
             occupation: json.data.occupation,
             education: json.data.education,
+            photo_url: json.data.photo_url || '',
             notes: json.data.notes,
           });
         } else {
@@ -81,6 +84,66 @@ export default function MemberDetailPage() {
     }
     if (id) fetchDetail();
   }, [id, roleCode]);
+
+  const handleDirectPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('error', 'Format Berkas Salah', 'Hanya gambar (JPG, PNG, WebP) yang diperbolehkan');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const compressedBase64 = ctx
+          ? (ctx.drawImage(img, 0, 0, width, height), canvas.toDataURL('image/jpeg', 0.85))
+          : (event.target?.result as string);
+
+        try {
+          const res = await fetch(`/api/jemaat/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              photo_url: compressedBase64,
+              actor_name: currentUser?.full_name || 'Admin',
+            }),
+          });
+          const json = await res.json();
+          if (json.success) {
+            showToast('success', 'Foto Disimpan', 'Foto profil jemaat berhasil diunggah dan disimpan ke database.');
+            setMember((prev: any) => ({ ...prev, photo_url: compressedBase64 }));
+            setEditFormData((prev: any) => ({ ...prev, photo_url: compressedBase64 }));
+          }
+        } catch (err) {
+          showToast('error', 'Gagal menyimpan foto');
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,11 +214,25 @@ export default function MemberDetailPage() {
       {/* Member Header Profile Card */}
       <Card className="bg-gradient-to-r from-navy-950 to-navy-900 text-white border-navy-800">
         <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <img
-            src={member.photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'}
-            alt={member.full_name}
-            className="w-28 h-28 rounded-2xl object-cover border-2 border-gold-400/50 shadow-xl shrink-0"
-          />
+          <div className="relative group shrink-0">
+            <img
+              src={member.photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'}
+              alt={member.full_name}
+              className="w-28 h-28 rounded-2xl object-cover border-2 border-gold-400/50 shadow-xl"
+            />
+            {can('jemaat', 'edit') && (
+              <label className="absolute inset-0 bg-navy-950/60 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-[11px] font-bold gap-1 shadow-inner">
+                <Camera className="w-5 h-5 text-gold-400" />
+                <span>Ganti Foto</span>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleDirectPhotoChange}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
 
           <div className="flex-1 text-center md:text-left space-y-2">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
@@ -523,6 +600,13 @@ export default function MemberDetailPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleUpdate} className="space-y-4">
+          <ImageUpload
+            value={editFormData.photo_url || ''}
+            onChange={(base64) => setEditFormData({ ...editFormData, photo_url: base64 })}
+            label="Perbarui Foto Profil Jemaat"
+            helperText="Unggah foto baru (JPG/PNG). Foto langsung dikonversi dan disimpan ke database."
+          />
+
           <Input
             label="Nama Lengkap *"
             value={editFormData.full_name || ''}
