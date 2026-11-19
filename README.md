@@ -94,3 +94,4 @@ Anda dapat langsung mengganti role secara interaktif pada tombol **Role Switcher
 3. **Migrasi PostgreSQL / Supabase (Jika Menggunakan Cloud Database)**:
    File SQL lengkap dengan indeks dan Row Level Security (RLS) tersedia di:
    `supabase/migrations/20261119_church_schema.sql`.
+# sistem-informasi-gereja
