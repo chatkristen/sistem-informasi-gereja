@@ -51,6 +51,7 @@ export interface User {
   member_id?: string;
   username: string;
   email: string;
+  password?: string;
   full_name: string;
   avatar_url?: string;
   status: UserStatus;
@@ -397,7 +398,7 @@ export interface AuditLog {
   church_id: string;
   user_id?: string;
   user_name: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'APPROVE' | 'LOGIN' | 'EXPORT';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'APPROVE' | 'LOGIN' | 'LOGOUT' | 'EXPORT';
   module: string;
   record_id?: string;
   details?: Record<string, any>;

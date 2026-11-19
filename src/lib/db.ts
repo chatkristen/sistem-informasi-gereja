@@ -1453,7 +1453,7 @@ export function writeDatabase(data: DatabaseSchema): void {
 export function logAudit(
   church_id: string,
   user_name: string,
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'APPROVE' | 'LOGIN' | 'EXPORT',
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'APPROVE' | 'LOGIN' | 'LOGOUT' | 'EXPORT',
   module: string,
   record_id?: string,
   details?: Record<string, any>

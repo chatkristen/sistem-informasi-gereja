@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard,
@@ -22,11 +22,18 @@ import {
   Wallet,
   ArrowRightLeft,
   PieChart,
+  LogOut,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { roleCode, currentUser, can } = useAuth();
+  const router = useRouter();
+  const { roleCode, currentUser, can, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   const isLinkActive = (href: string) => {
     if (href === '/' && pathname === '/') return true;
@@ -231,7 +238,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Bottom User Card */}
       <div className="p-3.5 border-t border-navy-900 bg-navy-900/50">
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-navy-900/80 border border-navy-800">
+        <div className="flex items-center gap-2.5 p-2 rounded-xl bg-navy-900/80 border border-navy-800">
           <img
             src={currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
             alt="Avatar"
@@ -243,6 +250,13 @@ export const Sidebar: React.FC = () => {
               {currentUser?.role_name}
             </p>
           </div>
+          <button
+            onClick={handleLogout}
+            title="Keluar dari sesi (Logout)"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>
