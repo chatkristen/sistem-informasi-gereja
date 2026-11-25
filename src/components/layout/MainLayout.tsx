@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Sidebar } from './Sidebar';
@@ -10,6 +10,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, isLoading } = useAuth();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const isLoginPage = pathname === '/login';
 
@@ -47,11 +48,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
-      <Sidebar />
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 antialiased relative">
+      <Sidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <Header onMenuToggle={() => setIsMobileSidebarOpen((prev) => !prev)} />
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
           {children}
         </main>
       </div>

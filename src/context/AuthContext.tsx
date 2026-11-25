@@ -6,6 +6,8 @@ import { hasPermission, ActionType, ModuleName } from '@/lib/rbac';
 
 interface AuthContextType {
   currentUser: User | null;
+  churchInfo: { name: string; code: string; logo_url?: string } | null;
+  refreshChurchInfo: () => Promise<void>;
   roleCode: RoleCode;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -19,14 +21,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const DEMO_USERS: Record<RoleCode, Partial<User>> = {
+export const USERS: Record<RoleCode, Partial<User>> = {
   SUPER_ADMIN: {
     id: 'u1000000-0000-0000-0000-000000000001',
     role_code: 'SUPER_ADMIN',
     role_name: 'Super Admin',
     username: 'admin',
-    full_name: 'Pdt. Samuel Hartono, M.Th',
-    email: 'admin@gkka.org',
+    full_name: 'Tri Harnoto, S.E',
+    email: 'admin@chatkristen.com',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     status: 'ACTIVE',
   },
@@ -88,9 +90,27 @@ export const DEMO_USERS: Record<RoleCode, Partial<User>> = {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [churchInfo, setChurchInfo] = useState<{ name: string; code: string; logo_url?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshChurchInfo = async () => {
+    try {
+      const res = await fetch('/api/pengaturan');
+      const data = await res.json();
+      if (data.success && data.church) {
+        setChurchInfo({
+          name: data.church.name,
+          code: data.church.code,
+          logo_url: data.church.logo_url,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load church info', e);
+    }
+  };
+
   useEffect(() => {
+    refreshChurchInfo();
     // Check cached user in localStorage
     try {
       const cachedUserStr = localStorage.getItem('church_auth_user');
@@ -100,9 +120,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Check if there was an active role set previously, or default to SUPER_ADMIN for smooth first visit
         const savedRole = localStorage.getItem('church_active_role') as RoleCode | null;
-        if (savedRole && DEMO_USERS[savedRole]) {
+        if (savedRole && USERS[savedRole]) {
           const initialUser: User = {
-            ...(DEMO_USERS[savedRole] as User),
+            ...(USERS[savedRole] as User),
             church_id: 'c1000000-0000-0000-0000-000000000001',
             role_id: 'r-' + savedRole,
           };
@@ -144,18 +164,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // 1-Click Quick Demo Login
+  // 1-Click Quick Login
   const quickLogin = async (role: RoleCode) => {
-    const demo = DEMO_USERS[role];
-    if (!demo?.email) return { success: false, message: 'Peran tidak ditemukan' };
-    return login(demo.email, 'password123', true);
+    const user = USERS[role];
+    if (!user?.email) return { success: false, message: 'Peran tidak ditemukan' };
+    return login(user.email, 'password123', true);
   };
 
   // Immediate Role Switcher (for development testing in header)
   const switchRole = (newRole: RoleCode) => {
     localStorage.setItem('church_active_role', newRole);
     const updatedUser: User = {
-      ...(DEMO_USERS[newRole] as User),
+      ...(USERS[newRole] as User),
       church_id: 'c1000000-0000-0000-0000-000000000001',
       role_id: 'r-' + newRole,
     };
@@ -189,13 +209,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const roleCode: RoleCode = currentUser?.role_code || 'SUPER_ADMIN';
-  const availableUsers = Object.values(DEMO_USERS) as User[];
+  const availableUsers = Object.values(USERS) as User[];
   const isAuthenticated = Boolean(currentUser);
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        churchInfo,
+        refreshChurchInfo,
         roleCode,
         isLoading,
         isAuthenticated,

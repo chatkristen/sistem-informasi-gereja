@@ -59,3 +59,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.announcements.findIndex((a) => a.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Warta pengumuman tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.announcements.splice(index, 1)[0];
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Sekretariat', 'DELETE', 'PENGUMUMAN', removed.id, {
+      judul: removed.title,
+    });
+
+    return NextResponse.json({ success: true, message: 'Warta pengumuman berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

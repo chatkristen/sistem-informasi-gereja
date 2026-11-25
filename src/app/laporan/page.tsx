@@ -366,7 +366,7 @@ export default function LaporanPage() {
                           <td className="px-4 py-3 font-bold text-slate-900">{row.full_name}</td>
                           <td className="px-4 py-3 text-slate-600">{row.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</td>
                           <td className="px-4 py-3 text-slate-600">{row.phone}</td>
-                          <td className="px-4 py-3 text-slate-600 truncate max-w-xs">{row.address}</td>
+                          <td className="px-4 py-3 text-slate-600 break-words min-w-[200px]">{row.address}</td>
                           <td className="px-4 py-3">
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                               {row.status}
@@ -381,7 +381,7 @@ export default function LaporanPage() {
                           <td className="px-4 py-3 text-slate-600">{formatDateIndo(row.transaction_date)}</td>
                           <td className="px-4 py-3 font-semibold text-slate-900">{row.category_name || row.type}</td>
                           <td className="px-4 py-3 text-slate-600">{row.account_name}</td>
-                          <td className="px-4 py-3 text-slate-500 truncate max-w-xs">{row.description}</td>
+                          <td className="px-4 py-3 text-slate-500 line-clamp-2 leading-relaxed min-w-[180px]">{row.description}</td>
                           <td className="px-4 py-3 text-right font-black text-navy-950">{formatCurrency(row.amount)}</td>
                         </>
                       )}

@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Announcement } from '@/lib/types';
 import { formatDateIndo } from '@/lib/utils';
 import {
@@ -18,6 +19,7 @@ import {
   Users,
   Building2,
   Trash2,
+  Share2,
 } from 'lucide-react';
 
 export default function PengumumanPage() {
@@ -31,6 +33,8 @@ export default function PengumumanPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -92,6 +96,38 @@ export default function PengumumanPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDeleteAnnouncement = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/pengumuman?id=${deleteTarget.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Warta Dihapus', `Warta "${deleteTarget.title}" berhasil dihapus.`);
+        setDeleteTarget(null);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleShareWhatsApp = (anc: Announcement) => {
+    const text = `*WARTA & PENGUMUMAN GEREJA*\n` +
+      `*${anc.title.toUpperCase()}*\n` +
+      `_Tanggal: ${formatDateIndo(anc.publish_date)}_\n` +
+      (anc.department_name ? `_Komisi: ${anc.department_name}_\n` : '') +
+      `\n${anc.content}\n\n` +
+      `_Tuhan Yesus Memberkati._\n*GKKA Jakarta*`;
+
+    const encodedText = encodeURIComponent(text);
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   return (
@@ -167,7 +203,26 @@ export default function PengumumanPage() {
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
                   <span>Diterbitkan oleh: <strong className="text-slate-700">{anc.created_by_name}</strong></span>
-                  <Badge variant="success">Publikasi Aktif</Badge>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleShareWhatsApp(anc)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-bold transition text-xs"
+                      title="Bagikan ke WhatsApp"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      Bagikan WA
+                    </button>
+                    <Badge variant="success">Publikasi Aktif</Badge>
+                    {can('pengumuman', 'delete') && (
+                      <button
+                        onClick={() => setDeleteTarget({ id: anc.id, title: anc.title })}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                        title="Hapus warta"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -246,6 +301,19 @@ export default function PengumumanPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Confirm Modal Hapus Warta */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteAnnouncement}
+        title="Hapus Warta Pengumuman"
+        message={`Apakah Anda yakin ingin menghapus warta pengumuman "${deleteTarget?.title}"? Tindakan ini akan menghapus warta dari siaran seluruh jemaat.`}
+        confirmText="Ya, Hapus Warta"
+        cancelText="Batalkan"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

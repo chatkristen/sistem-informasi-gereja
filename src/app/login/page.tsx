@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, DEMO_USERS } from '@/context/AuthContext';
+import { useAuth, USERS } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
 import { RoleCode } from '@/lib/types';
 import {
@@ -74,11 +74,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickDemoLogin = async (role: RoleCode) => {
-    const demo = DEMO_USERS[role];
-    if (!demo?.email) return;
+  const handleQuickLogin = async (role: RoleCode) => {
+    const user = USERS[role];
+    if (!user?.email) return;
 
-    setIdentifier(demo.email);
+    setIdentifier(user.email);
     setPassword('password123');
     setIsLoading(true);
     setErrorMessage(null);
@@ -86,13 +86,13 @@ export default function LoginPage() {
     try {
       const res = await quickLogin(role);
       if (res.success) {
-        showToast('success', 'Masuk Cepat', `Berhasil masuk sebagai ${demo.role_name} (${demo.full_name}).`);
+        showToast('success', 'Masuk Berhasil', `Berhasil masuk sebagai ${user.role_name} (${user.full_name}).`);
         router.push('/');
       } else {
-        setErrorMessage(res.message || 'Gagal login demo');
+        setErrorMessage(res.message || 'Gagal masuk akun');
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Kesalahan demo login');
+      setErrorMessage(err.message || 'Kesalahan saat masuk akun');
     } finally {
       setIsLoading(false);
     }
@@ -345,14 +345,14 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Quick Demo Access Section */}
+            {/* Quick Access Section */}
             <div className="mt-6 pt-5 border-t border-slate-100">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-gold-500" />
-                  Masuk Cepat Demo Peran
+                  Pilihan Akun Pengurus
                 </span>
-                <span className="text-[10px] text-slate-400 font-semibold">1-Klik Akses</span>
+                <span className="text-[10px] text-slate-400 font-semibold">1-Klik Masuk</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -360,7 +360,7 @@ export default function LoginPage() {
                   <button
                     key={rc.role}
                     type="button"
-                    onClick={() => handleQuickDemoLogin(rc.role)}
+                    onClick={() => handleQuickLogin(rc.role)}
                     className="p-2.5 rounded-xl border border-slate-200 hover:border-navy-600 hover:bg-slate-50 transition text-left flex items-center gap-2 group cursor-pointer"
                   >
                     <span className="text-base shrink-0 group-hover:scale-110 transition-transform">
@@ -403,13 +403,13 @@ export default function LoginPage() {
           <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1.5">
             <p className="font-bold flex items-center gap-1.5">
               <Info className="w-4 h-4 text-amber-700 shrink-0" />
-              Kata Sandi Default Pengurus (Uji Coba / Demo):
+              Kata Sandi Standar Pengurus:
             </p>
             <p className="font-mono text-xs bg-white px-2.5 py-1 rounded-lg border border-amber-200 inline-block text-navy-950 font-bold">
               password123
             </p>
             <p className="text-[11px] text-amber-800">
-              Seluruh akun seeded menggunakan kata sandi standar di atas, atau gunakan fitur <strong>1-Klik Masuk Cepat</strong> pada halaman login.
+              Seluruh akun seeded menggunakan kata sandi standar di atas, atau gunakan tombol <strong>Pilihan Akun Pengurus</strong> pada halaman login.
             </p>
           </div>
 

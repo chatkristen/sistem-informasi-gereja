@@ -40,3 +40,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.financial_accounts.findIndex((a) => a.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Akun kas/bank tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.financial_accounts[index];
+    if (removed.current_balance !== 0) {
+      return NextResponse.json({
+        success: false,
+        message: 'Akun kas yang masih memiliki saldo tidak dapat dihapus. Silakan transfer saldo terlebih dahulu.',
+      }, { status: 400 });
+    }
+
+    db.financial_accounts.splice(index, 1);
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Bendahara', 'DELETE', 'KEUANGAN', removed.account_number, {
+      nama_akun: removed.account_name,
+    });
+
+    return NextResponse.json({ success: true, message: 'Akun kas berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

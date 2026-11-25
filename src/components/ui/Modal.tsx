@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -20,6 +21,12 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'lg',
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -34,7 +41,7 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const widthClasses = {
     sm: 'max-w-sm',
@@ -46,8 +53,11 @@ export const Modal: React.FC<ModalProps> = ({
     '4xl': 'max-w-4xl',
   }[maxWidth];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-navy-950/60 backdrop-blur-sm animate-fade-in">
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-navy-950/60 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
       <div
         className={`relative w-full ${widthClasses} bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8`}
         onClick={(e) => e.stopPropagation()}
@@ -63,7 +73,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-navy-300 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition"
+            className="text-navy-300 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -76,4 +86,6 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

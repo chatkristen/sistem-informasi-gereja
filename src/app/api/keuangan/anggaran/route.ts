@@ -63,3 +63,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.budget_details.findIndex((d) => d.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Pos anggaran tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.budget_details.splice(index, 1)[0];
+
+    // Update total budget
+    const budget = db.budgets.find((b) => b.id === removed.budget_id);
+    if (budget) {
+      budget.total_budget = db.budget_details
+        .filter((d) => d.budget_id === budget.id)
+        .reduce((sum, d) => sum + d.allocated_amount, 0);
+    }
+
+    writeDatabase(db);
+    logAudit(db.church.id, 'Bendahara', 'DELETE', 'ANGGARAN', removed.id, {
+      departemen: removed.department_name,
+      alokasi: removed.allocated_amount,
+    });
+
+    return NextResponse.json({ success: true, message: 'Pos anggaran berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

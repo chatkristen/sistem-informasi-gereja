@@ -21,6 +21,7 @@ import {
   CheckCircle,
   Wrench,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 
 export default function InventarisPage() {
@@ -124,6 +125,22 @@ export default function InventarisPage() {
     }
   };
 
+  const handleDeleteItem = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus barang inventaris "${name}"?`)) return;
+    try {
+      const res = await fetch(`/api/inventaris?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Aset Dihapus', `Barang "${name}" berhasil dihapus.`);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
+    }
+  };
+
   const handleExportExcel = () => {
     const columns = [
       { header: 'Kode Aset', key: 'item_code' },
@@ -196,19 +213,20 @@ export default function InventarisPage() {
                 <th className="px-4 py-3.5">Lokasi Simpan</th>
                 <th className="px-4 py-3.5">Penanggung Jawab</th>
                 <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">
+                  <td colSpan={9} className="p-8 text-center text-slate-400">
                     <div className="inline-block w-6 h-6 border-2 border-navy-900 border-t-gold-500 rounded-full animate-spin"></div>
                     <p className="mt-2 text-xs">Memuat inventaris...</p>
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">
+                  <td colSpan={9} className="p-8 text-center text-slate-400">
                     Belum ada aset inventaris yang terdaftar.
                   </td>
                 </tr>
@@ -295,6 +313,18 @@ export default function InventarisPage() {
                             : 'Servis'}
                         </span>
                       </td>
+
+                      <td className="px-4 py-3.5 text-right">
+                        {can('inventaris', 'delete') && (
+                          <button
+                            onClick={() => handleDeleteItem(ast.id, ast.name)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                            title="Hapus aset"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -332,7 +362,7 @@ export default function InventarisPage() {
                     <td className="px-4 py-3 font-semibold text-slate-800">{loan.borrower_name}</td>
                     <td className="px-4 py-3 text-slate-600">{formatDateIndo(loan.borrow_date)}</td>
                     <td className="px-4 py-3 text-slate-600">{formatDateIndo(loan.expected_return_date)}</td>
-                    <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{loan.purpose}</td>
+                    <td className="px-4 py-3 text-slate-600 line-clamp-2 leading-snug">{loan.purpose}</td>
                     <td className="px-4 py-3">
                       <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                         {loan.status}

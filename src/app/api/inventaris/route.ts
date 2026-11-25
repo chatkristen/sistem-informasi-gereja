@@ -83,3 +83,57 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, condition, status, location, quantity, actor_name } = body;
+
+    const db = readDatabase();
+    const item = db.inventory_items.find((i) => i.id === id);
+
+    if (!item) {
+      return NextResponse.json({ success: false, message: 'Barang inventaris tidak ditemukan' }, { status: 404 });
+    }
+
+    if (condition) item.condition = condition;
+    if (status) item.status = status;
+    if (location) item.location = location;
+    if (quantity !== undefined) item.quantity = Number(quantity);
+
+    writeDatabase(db);
+    logAudit(db.church.id, actor_name || 'Admin', 'UPDATE', 'INVENTARIS', item.item_code, {
+      kondisi: item.condition,
+      status: item.status,
+    });
+
+    return NextResponse.json({ success: true, data: item });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.inventory_items.findIndex((i) => i.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Barang inventaris tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.inventory_items.splice(index, 1)[0];
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Admin', 'DELETE', 'INVENTARIS', removed.item_code, {
+      nama_barang: removed.name,
+    });
+
+    return NextResponse.json({ success: true, message: 'Barang inventaris berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

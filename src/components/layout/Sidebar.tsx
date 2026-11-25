@@ -25,12 +25,18 @@ import {
   LogOut,
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { roleCode, currentUser, can, logout } = useAuth();
+  const { roleCode, currentUser, churchInfo, can, logout } = useAuth();
 
   const handleLogout = async () => {
+    if (onClose) onClose();
     await logout();
     router.push('/login');
   };
@@ -172,23 +178,55 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-72 bg-navy-950 text-slate-300 flex flex-col shrink-0 border-r border-navy-900 select-none min-h-screen">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-navy-900/80 bg-navy-950/80 backdrop-blur sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 via-gold-500 to-gold-600 flex items-center justify-center text-navy-950 shadow-md shadow-gold-500/10 font-black text-xl shrink-0">
-            ✝
-          </div>
-          <div className="overflow-hidden">
-            <h1 className="font-bold text-white text-sm tracking-tight truncate leading-tight">
-              GKKA JAKARTA
-            </h1>
-            <p className="text-[11px] text-gold-400 font-medium tracking-wider uppercase">
-              Church Management
-            </p>
-          </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-navy-950/70 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-72 bg-navy-950 text-slate-300 flex flex-col shrink-0 border-r border-navy-900 select-none min-h-screen transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-5 border-b border-navy-900/80 bg-navy-950/80 backdrop-blur sticky top-0 z-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            {churchInfo?.logo_url ? (
+              <img
+                src={churchInfo.logo_url}
+                alt="Logo Gereja"
+                className="w-10 h-10 rounded-xl object-contain bg-white/10 p-1 border border-gold-400/30 shadow-md shadow-gold-500/10 shrink-0 group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 via-gold-500 to-gold-600 flex items-center justify-center text-navy-950 shadow-md shadow-gold-500/10 font-black text-xl shrink-0 group-hover:scale-105 transition-transform">
+                ✝
+              </div>
+            )}
+            <div className="overflow-hidden">
+              <h1 className="font-bold text-white text-sm tracking-tight truncate leading-tight group-hover:text-gold-300 transition-colors">
+                {churchInfo?.code || 'GKKA JAKARTA'}
+              </h1>
+              <p className="text-[11px] text-gold-400 font-medium tracking-wider uppercase">
+                Church Management
+              </p>
+            </div>
+          </Link>
+          {/* Close button on mobile */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-navy-900 transition"
+              title="Tutup Menu"
+            >
+              ✕
+            </button>
+          )}
         </div>
-      </div>
 
       {/* Nav List */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-navy-800">
@@ -210,6 +248,9 @@ export const Sidebar: React.FC = () => {
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
                       className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                         active
                           ? 'bg-gradient-to-r from-gold-500/20 to-gold-500/5 text-gold-300 border-l-4 border-gold-400 shadow-sm'
@@ -259,6 +300,7 @@ export const Sidebar: React.FC = () => {
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

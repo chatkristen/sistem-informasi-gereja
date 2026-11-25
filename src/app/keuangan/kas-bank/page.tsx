@@ -17,6 +17,7 @@ import {
   ArrowDownLeft,
   ShieldCheck,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 
 export default function KasBankPage() {
@@ -146,6 +147,22 @@ export default function KasBankPage() {
       }
     } catch (err: any) {
       showToast('error', 'Gagal membuat akun', err.message);
+    }
+  };
+
+  const handleDeleteAccount = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus akun kas / rekening "${name}"?`)) return;
+    try {
+      const res = await fetch(`/api/keuangan/akun?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Akun Dihapus', `Akun "${name}" berhasil dihapus.`);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
     }
   };
 

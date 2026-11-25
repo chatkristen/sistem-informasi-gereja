@@ -57,3 +57,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.departments.findIndex((d) => d.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Departemen tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.departments.splice(index, 1)[0];
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Admin', 'DELETE', 'DEPARTEMEN', removed.name, {
+      kode: removed.code,
+    });
+
+    return NextResponse.json({ success: true, message: 'Departemen berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

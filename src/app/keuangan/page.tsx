@@ -178,7 +178,7 @@ export default function KeuanganOverviewPage() {
       </div>
 
       {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <Card>
           <CardContent className="p-5 flex items-center justify-between">
             <div>
@@ -375,12 +375,12 @@ export default function KeuanganOverviewPage() {
                       <td className="px-4 py-3.5 text-slate-600">
                         <span className="font-medium">{tx.payment_method}</span>
                         {tx.member_name && (
-                          <p className="text-[10px] text-gold-700 font-semibold truncate max-w-[130px]">
+                          <p className="text-[10px] text-gold-700 font-semibold leading-snug">
                             {tx.member_name}
                           </p>
                         )}
                         {tx.recipient_name && (
-                          <p className="text-[10px] text-slate-500 truncate max-w-[130px]">
+                          <p className="text-[10px] text-slate-500 leading-snug">
                             Kepada: {tx.recipient_name}
                           </p>
                         )}
@@ -405,7 +405,7 @@ export default function KeuanganOverviewPage() {
                           {statusBadge.label}
                         </span>
                         {tx.reversal_reason && (
-                          <p className="text-[10px] text-rose-600 font-medium mt-0.5 truncate max-w-[120px]" title={tx.reversal_reason}>
+                          <p className="text-[10px] text-rose-600 font-medium mt-0.5 leading-snug" title={tx.reversal_reason}>
                             Alasan: {tx.reversal_reason}
                           </p>
                         )}

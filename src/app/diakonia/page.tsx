@@ -19,6 +19,7 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Trash2,
 } from 'lucide-react';
 
 export default function DiakoniaPage() {
@@ -125,6 +126,22 @@ export default function DiakoniaPage() {
       }
     } catch (err) {
       showToast('error', 'Gagal update status');
+    }
+  };
+
+  const handleDeleteRequest = async (id: string, reqNum: string) => {
+    if (!window.confirm(`Hapus permohonan diakonia "${reqNum}"?`)) return;
+    try {
+      const res = await fetch(`/api/diakonia?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Permohonan Dihapus', `Data "${reqNum}" berhasil dihapus.`);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
     }
   };
 
@@ -299,6 +316,15 @@ export default function DiakoniaPage() {
                               className="px-2 py-1 rounded bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700"
                             >
                               Salurkan
+                            </button>
+                          )}
+                          {can('diakonia', 'delete') && (
+                            <button
+                              onClick={() => handleDeleteRequest(dia.id, dia.request_number)}
+                              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                              title="Hapus permohonan"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>

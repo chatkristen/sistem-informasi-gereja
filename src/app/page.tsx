@@ -29,6 +29,7 @@ import {
   CheckCircle2,
   FileText,
   Plus,
+  Share2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const { currentUser, roleCode } = useAuth();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [trendPeriod, setTrendPeriod] = useState<'month' | '3months' | '6months' | '1year'>('6months');
 
   useEffect(() => {
     async function loadDashboard() {
@@ -66,6 +68,26 @@ export default function DashboardPage() {
     }
     loadDashboard();
   }, [roleCode]);
+
+  const handleShareWhatsApp = (evt: any) => {
+    const isIbadah = evt.category === 'IBADAH_RAYA';
+    const dateFormatted = formatDateTimeIndo(evt.start_time);
+
+    let text = `*JADWAL PELAYAN ${isIbadah ? 'IBADAH RAYA' : 'KEGIATAN GEREJA'}*\n` +
+      `*${evt.title.toUpperCase()}*\n` +
+      `_Waktu: ${dateFormatted} WIB_\n` +
+      (evt.location ? `_Lokasi: ${evt.location}_\n` : '') +
+      (evt.description ? `_Tema: ${evt.description}_\n` : '') +
+      `\n*Daftar Pelayan:*\n`;
+
+    if (evt.pic_member_name) text += `• ${isIbadah ? 'Pengkhotbah / PIC' : 'Penanggung Jawab'}: ${evt.pic_member_name}\n`;
+    if (evt.mc_name) text += `• ${isIbadah ? 'MC / Worship Leader' : 'Pembawa Acara'}: ${evt.mc_name}\n`;
+
+    text += `\n_Mari bersama melayani dengan sukacita bagi kemuliaan Tuhan._\n*GKKA Jakarta*`;
+
+    const encoded = encodeURIComponent(text);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  };
 
   if (isLoading || !data) {
     return (
@@ -119,8 +141,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 8 Primary Metric Cards (Actual Database Counts) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+              {/* 8 Primary Metric Cards (Actual Database Counts) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {/* Total Jemaat */}
         <Card className="hover:border-navy-300">
           <CardContent className="p-5 flex items-center justify-between">
@@ -216,7 +238,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Saldo Kas & Bank */}
-        <Card className="hover:border-navy-300 col-span-2">
+        <Card className="hover:border-navy-300 col-span-1 sm:col-span-2">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-slate-500">Total Likuiditas Saldo (Kas & Bank)</p>
@@ -236,18 +258,80 @@ export default function DashboardPage() {
 
       {/* Visual Analytics Charts (Recharts) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Trend Keuangan 6 Bulan */}
+        {/* Trend Keuangan Dinamis */}
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle>Arus Kas Pemasukan & Pengeluaran</CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">Tren riwayat keuangan 6 bulan terakhir</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {trendPeriod === 'month' && 'Tren riwayat keuangan per minggu (Bulan Berjalan)'}
+                {trendPeriod === '3months' && 'Tren riwayat keuangan 3 bulan terakhir'}
+                {trendPeriod === '6months' && 'Tren riwayat keuangan 6 bulan terakhir'}
+                {trendPeriod === '1year' && 'Tren riwayat keuangan 1 tahun terakhir'}
+              </p>
             </div>
-            <Badge variant="gold">Aktual Database</Badge>
+            {/* Pilihan Periode */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setTrendPeriod('month')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition ${
+                  trendPeriod === 'month'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950 hover:bg-slate-200/60'
+                }`}
+              >
+                Bulan Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrendPeriod('3months')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition ${
+                  trendPeriod === '3months'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950 hover:bg-slate-200/60'
+                }`}
+              >
+                3 Bulan
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrendPeriod('6months')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition ${
+                  trendPeriod === '6months'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950 hover:bg-slate-200/60'
+                }`}
+              >
+                6 Bulan
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrendPeriod('1year')}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition ${
+                  trendPeriod === '1year'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950 hover:bg-slate-200/60'
+                }`}
+              >
+                1 Tahun
+              </button>
+            </div>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={charts.trendKeuangan} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart
+                data={
+                  trendPeriod === 'month'
+                    ? charts.trendKeuanganBulanIni || []
+                    : trendPeriod === '3months'
+                    ? charts.trendKeuangan3Bulan || []
+                    : trendPeriod === '1year'
+                    ? charts.trendKeuangan1Tahun || []
+                    : charts.trendKeuangan6Bulan || charts.trendKeuangan || []
+                }
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
@@ -314,9 +398,9 @@ export default function DashboardPage() {
               </h4>
               <div className="space-y-2.5">
                 {charts.distribusiDepartemen.slice(0, 4).map((d: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-600 truncate max-w-[170px]">{d.name}</span>
-                    <span className="font-bold text-navy-950 bg-slate-100 px-2 py-0.5 rounded-md">
+                  <div key={idx} className="flex items-center justify-between text-xs gap-2">
+                    <span className="text-slate-600 line-clamp-1">{d.name}</span>
+                    <span className="font-bold text-navy-950 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
                       {d.anggota} Jemaat
                     </span>
                   </div>
@@ -359,20 +443,30 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-navy-950 truncate">{event.title}</h4>
-                        <Badge variant="navy" className="text-[10px]">
-                          {event.category.replace('_', ' ')}
-                        </Badge>
+                      <div className="flex flex-wrap items-center justify-between gap-1.5">
+                        <h4 className="text-xs font-bold text-navy-950 leading-snug">{event.title}</h4>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => handleShareWhatsApp(event)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-bold transition text-[10px]"
+                            title="Bagikan ke WhatsApp"
+                          >
+                            <Share2 className="w-3 h-3" />
+                            Share WA
+                          </button>
+                          <Badge variant="navy" className="text-[10px] shrink-0">
+                            {event.category.replace('_', ' ')}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-[11px] text-slate-500 mt-1">
-                        <span className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 mt-1">
+                        <span className="flex items-center gap-1 shrink-0">
                           <Clock className="w-3 h-3 text-slate-400" />
                           {new Date(event.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
                         </span>
-                        <span className="flex items-center gap-1 truncate">
-                          <MapPin className="w-3 h-3 text-slate-400" />
-                          {event.location}
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{event.location}</span>
                         </span>
                       </div>
                       {(event.pic_member_name || event.mc_name) && (
@@ -409,8 +503,8 @@ export default function DashboardPage() {
                 const isIncome = tx.type === 'INCOME';
 
                 return (
-                  <div key={tx.id} className="p-4 hover:bg-slate-50 transition flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div key={tx.id} className="p-4 hover:bg-slate-50 transition flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div
                         className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                           isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
@@ -418,11 +512,11 @@ export default function DashboardPage() {
                       >
                         {isIncome ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                       </div>
-                      <div className="overflow-hidden">
-                        <p className="text-xs font-bold text-navy-950 truncate max-w-[200px] sm:max-w-xs">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-navy-950 leading-snug line-clamp-1">
                           {tx.description}
                         </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-[11px] text-slate-400 mt-0.5 truncate">
                           {formatDateIndo(tx.transaction_date)} • {tx.account_name}
                         </p>
                       </div>

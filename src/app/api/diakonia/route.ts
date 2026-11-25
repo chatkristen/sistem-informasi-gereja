@@ -105,3 +105,28 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.diakonia_requests.findIndex((d) => d.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Permohonan diakonia tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.diakonia_requests.splice(index, 1)[0];
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Admin', 'DELETE', 'DIAKONIA', removed.request_number, {
+      penerima: removed.recipient_name,
+    });
+
+    return NextResponse.json({ success: true, message: 'Permohonan diakonia berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

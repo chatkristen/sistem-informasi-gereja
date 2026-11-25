@@ -101,3 +101,28 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    const db = readDatabase();
+    const index = db.work_programs.findIndex((p) => p.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ success: false, message: 'Program kerja tidak ditemukan' }, { status: 404 });
+    }
+
+    const removed = db.work_programs.splice(index, 1)[0];
+    writeDatabase(db);
+
+    logAudit(db.church.id, 'Admin', 'DELETE', 'PROGRAM_KERJA', removed.title, {
+      komisi: removed.department_name,
+    });
+
+    return NextResponse.json({ success: true, message: 'Program kerja berhasil dihapus' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

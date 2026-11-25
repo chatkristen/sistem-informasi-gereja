@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Department } from '@/lib/types';
 import { exportToExcel, exportToPDF } from '@/lib/export-utils';
 import {
@@ -17,6 +18,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +33,8 @@ export default function DepartemenPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -94,6 +98,26 @@ export default function DepartemenPage() {
       showToast('error', 'Gagal', err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteDept = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/departemen?id=${deleteTarget.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Departemen Dihapus', `Departemen "${deleteTarget.name}" berhasil dihapus.`);
+        setDeleteTarget(null);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -165,9 +189,20 @@ export default function DepartemenPage() {
                   <span className="text-[10px] font-bold tracking-wider uppercase text-gold-700 bg-gold-50 border border-gold-200 px-2.5 py-0.5 rounded-full">
                     {dept.category}
                   </span>
-                  <span className="font-mono text-xs font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded">
-                    {dept.code}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-xs font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded">
+                      {dept.code}
+                    </span>
+                    {can('departemen', 'delete') && (
+                      <button
+                        onClick={() => setDeleteTarget({ id: dept.id, name: dept.name })}
+                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                        title="Hapus departemen"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -273,6 +308,19 @@ export default function DepartemenPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Confirm Modal Hapus Departemen */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteDept}
+        title="Hapus Departemen / Komisi"
+        message={`Apakah Anda yakin ingin menghapus departemen / komisi "${deleteTarget?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus Departemen"
+        cancelText="Batalkan"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

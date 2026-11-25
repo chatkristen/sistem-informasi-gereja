@@ -245,7 +245,7 @@ export default function PengeluaranPage() {
 
                       <td className="px-4 py-3.5">
                         <p className="font-bold text-navy-950">{tx.category_name || 'Beban Lainnya'}</p>
-                        <p className="text-[11px] text-slate-400 line-clamp-1 max-w-[200px]">{tx.description}</p>
+                        <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{tx.description}</p>
                       </td>
 
                       <td className="px-4 py-3.5 font-semibold text-slate-800">

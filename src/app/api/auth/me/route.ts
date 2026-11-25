@@ -5,8 +5,8 @@ export async function GET() {
   try {
     const db = readDatabase();
     
-    // Return sanitized users for quick testing & demo cards
-    const demoUsers = db.users.map((u) => ({
+    // Return sanitized users for quick testing & cards
+    const userList = db.users.map((u) => ({
       id: u.id,
       church_id: u.church_id,
       role_code: u.role_code,
@@ -31,7 +31,7 @@ export async function GET() {
         phone: db.church.phone,
         email: db.church.email,
       },
-      users: demoUsers,
+      users: userList,
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

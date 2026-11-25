@@ -39,14 +39,60 @@ export async function GET(request: Request) {
       .filter((e) => e.status === 'SCHEDULED' || e.status === 'ONGOING')
       .slice(0, 5);
 
-    // 4. Monthly Finance Trend Chart (Actual Data)
-    const trendKeuangan = [
+    // 4. Finance Trends for Different Periods
+    const trendKeuangan6Bulan = [
       { bulan: 'Jun', pemasukan: 42000000, pengeluaran: 28000000 },
       { bulan: 'Jul', pemasukan: 48500000, pengeluaran: 31000000 },
       { bulan: 'Agu', pemasukan: 45000000, pengeluaran: 29500000 },
       { bulan: 'Sep', pemasukan: 52000000, pengeluaran: 34000000 },
       { bulan: 'Okt', pemasukan: 49000000, pengeluaran: 33000000 },
       { bulan: 'Nov', pemasukan: totalPemasukanBulanIni, pengeluaran: totalPengeluaranBulanIni },
+    ];
+
+    const trendKeuangan3Bulan = [
+      { bulan: 'Sep', pemasukan: 52000000, pengeluaran: 34000000 },
+      { bulan: 'Okt', pemasukan: 49000000, pengeluaran: 33000000 },
+      { bulan: 'Nov', pemasukan: totalPemasukanBulanIni, pengeluaran: totalPengeluaranBulanIni },
+    ];
+
+    const trendKeuangan1Tahun = [
+      { bulan: 'Des 25', pemasukan: 38000000, pengeluaran: 25000000 },
+      { bulan: 'Jan 26', pemasukan: 40500000, pengeluaran: 26000000 },
+      { bulan: 'Feb 26', pemasukan: 41000000, pengeluaran: 27500000 },
+      { bulan: 'Mar 26', pemasukan: 43500000, pengeluaran: 29000000 },
+      { bulan: 'Apr 26', pemasukan: 44000000, pengeluaran: 28500000 },
+      { bulan: 'Mei 26', pemasukan: 46000000, pengeluaran: 30000000 },
+      { bulan: 'Jun 26', pemasukan: 42000000, pengeluaran: 28000000 },
+      { bulan: 'Jul 26', pemasukan: 48500000, pengeluaran: 31000000 },
+      { bulan: 'Agu 26', pemasukan: 45000000, pengeluaran: 29500000 },
+      { bulan: 'Sep 26', pemasukan: 52000000, pengeluaran: 34000000 },
+      { bulan: 'Okt 26', pemasukan: 49000000, pengeluaran: 33000000 },
+      { bulan: 'Nov 26', pemasukan: totalPemasukanBulanIni, pengeluaran: totalPengeluaranBulanIni },
+    ];
+
+    // Weekly Breakdown of Current Month (Nov 2026)
+    let w1Inc = 0, w1Exp = 0, w2Inc = 0, w2Exp = 0, w3Inc = 0, w3Exp = 0, w4Inc = 0, w4Exp = 0;
+    db.financial_transactions.forEach((tx) => {
+      if (tx.status === 'REVERSED') return;
+      if (tx.transaction_date.startsWith(currentMonthPrefix)) {
+        const day = parseInt(tx.transaction_date.split('-')[2] || '1', 10);
+        if (day <= 7) {
+          if (tx.type === 'INCOME') w1Inc += tx.amount; else w1Exp += tx.amount;
+        } else if (day <= 14) {
+          if (tx.type === 'INCOME') w2Inc += tx.amount; else w2Exp += tx.amount;
+        } else if (day <= 21) {
+          if (tx.type === 'INCOME') w3Inc += tx.amount; else w3Exp += tx.amount;
+        } else {
+          if (tx.type === 'INCOME') w4Inc += tx.amount; else w4Exp += tx.amount;
+        }
+      }
+    });
+
+    const trendKeuanganBulanIni = [
+      { bulan: 'Minggu 1', pemasukan: w1Inc, pengeluaran: w1Exp },
+      { bulan: 'Minggu 2', pemasukan: w2Inc, pengeluaran: w2Exp },
+      { bulan: 'Minggu 3', pemasukan: w3Inc, pengeluaran: w3Exp },
+      { bulan: 'Minggu 4', pemasukan: w4Inc, pengeluaran: w4Exp },
     ];
 
     // 5. Jemaat Growth Data
@@ -110,7 +156,11 @@ export async function GET(request: Request) {
         jumlahKegiatanMendatang: kegiatanMendatang.length,
       },
       charts: {
-        trendKeuangan,
+        trendKeuangan: trendKeuangan6Bulan,
+        trendKeuangan3Bulan,
+        trendKeuangan6Bulan,
+        trendKeuangan1Tahun,
+        trendKeuanganBulanIni,
         pertumbuhanJemaat,
         distribusiDepartemen,
       },

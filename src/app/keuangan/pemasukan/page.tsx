@@ -283,7 +283,7 @@ export default function PemasukanPage() {
                         <span className="font-bold text-navy-950">
                           {getOfferingTypeLabel(tx.offering_type)}
                         </span>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[200px]">{tx.description}</p>
+                        <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{tx.description}</p>
                       </td>
 
                       <td className="px-4 py-3.5">

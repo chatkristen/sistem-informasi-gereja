@@ -17,6 +17,7 @@ import {
   Building2,
   TrendingUp,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 
 export default function AnggaranPage() {
@@ -102,6 +103,22 @@ export default function AnggaranPage() {
     }
   };
 
+  const handleDeleteDetail = async (id: string, name: string) => {
+    if (!window.confirm(`Hapus alokasi anggaran "${name}"?`)) return;
+    try {
+      const res = await fetch(`/api/keuangan/anggaran?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Anggaran Dihapus', `Pos "${name}" berhasil dihapus.`);
+        loadBudget();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
+    }
+  };
+
   const totalAllocated = details.reduce((sum, d) => sum + d.allocated_amount, 0);
   const totalRealized = details.reduce((sum, d) => sum + d.realized_amount, 0);
   const totalRemaining = totalAllocated - totalRealized;
@@ -159,7 +176,7 @@ export default function AnggaranPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-5">
             <p className="text-xs font-semibold text-slate-500">Total Pagu Anggaran 2026</p>
@@ -208,12 +225,13 @@ export default function AnggaranPage() {
                 <th className="px-4 py-3.5 text-right">Realisasi Aktual</th>
                 <th className="px-4 py-3.5 text-right">Sisa Pagu</th>
                 <th className="px-5 py-3.5 w-48">Penggunaan (%)</th>
+                <th className="px-4 py-3.5 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     <div className="inline-block w-6 h-6 border-2 border-navy-900 border-t-gold-500 rounded-full animate-spin"></div>
                     <p className="mt-2 text-xs">Memuat data anggaran...</p>
                   </td>
@@ -259,6 +277,18 @@ export default function AnggaranPage() {
                             ></div>
                           </div>
                         </div>
+                      </td>
+
+                      <td className="px-4 py-3.5 text-right">
+                        {can('keuangan_umum', 'delete') && (
+                          <button
+                            onClick={() => handleDeleteDetail(d.id, d.department_name || d.category_name || '')}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                            title="Hapus pos anggaran"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

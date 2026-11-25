@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 
 export default function ProgramKerjaPage() {
@@ -138,6 +139,22 @@ export default function ProgramKerjaPage() {
       }
     } catch (err) {
       showToast('error', 'Gagal update status');
+    }
+  };
+
+  const handleDeleteProgram = async (id: string, title: string) => {
+    if (!window.confirm(`Hapus program kerja "${title}"?`)) return;
+    try {
+      const res = await fetch(`/api/program-kerja?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Program Dihapus', `Program "${title}" berhasil dihapus.`);
+        loadData();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
     }
   };
 
@@ -306,6 +323,15 @@ export default function ProgramKerjaPage() {
                           className="px-2 py-1 rounded bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700"
                         >
                           Tandai Selesai
+                        </button>
+                      )}
+                      {can('program_kerja', 'delete') && (
+                        <button
+                          onClick={() => handleDeleteProgram(wp.id, wp.title)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          title="Hapus program kerja"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>

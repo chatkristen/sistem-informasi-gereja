@@ -332,11 +332,11 @@ export default function JemaatPage() {
                           <div>
                             <Link
                               href={`/jemaat/${m.id}`}
-                              className="font-bold text-navy-950 hover:text-gold-600 transition"
+                              className="font-bold text-navy-950 hover:text-gold-600 transition block leading-snug"
                             >
                               {m.full_name}
                             </Link>
-                            <p className="text-[11px] text-slate-400 truncate max-w-[180px]">
+                            <p className="text-[11px] text-slate-400">
                               {m.occupation || 'Belum diisi'}
                             </p>
                           </div>
@@ -358,13 +358,13 @@ export default function JemaatPage() {
 
                       <td className="px-4 py-3.5 text-slate-600">
                         <p className="font-medium text-slate-800">{m.phone || '-'}</p>
-                        <p className="text-[10px] text-slate-400 truncate max-w-[130px]">{m.email || '-'}</p>
+                        <p className="text-[10px] text-slate-400 break-all">{m.email || '-'}</p>
                       </td>
 
                       <td className="px-4 py-3.5">
                         {m.family_name ? (
                           <div>
-                            <p className="font-semibold text-slate-800 truncate max-w-[140px]">{m.family_name}</p>
+                            <p className="font-semibold text-slate-800 leading-snug">{m.family_name}</p>
                             <span className={`inline-block text-[10px] px-1.5 py-0.2 rounded border font-medium mt-0.5 ${relBadge.color}`}>
                               {relBadge.label}
                             </span>

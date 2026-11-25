@@ -6,6 +6,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Input, Select } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Family, Member } from '@/lib/types';
 import { formatDateIndo } from '@/lib/utils';
 import { exportToExcel, exportToPDF } from '@/lib/export-utils';
@@ -37,6 +38,8 @@ export default function KeluargaPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     family_name: '',
@@ -111,6 +114,26 @@ export default function KeluargaPage() {
       showToast('error', 'Kesalahan Sistem', err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteFamily = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/keluarga/${deleteTarget.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('success', 'Keluarga Diarsipkan', `Data "${deleteTarget.name}" berhasil diarsipkan.`);
+        setDeleteTarget(null);
+        loadFamilies();
+      } else {
+        showToast('error', 'Gagal', json.message);
+      }
+    } catch (err: any) {
+      showToast('error', 'Gagal', err.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -210,9 +233,20 @@ export default function KeluargaPage() {
                     </h3>
                   </div>
 
-                  <span className="text-xs font-bold bg-gold-50 text-gold-900 border border-gold-200 px-2.5 py-1 rounded-xl">
-                    {f.members_count} Jiwa
-                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs font-bold bg-gold-50 text-gold-900 border border-gold-200 px-2.5 py-1 rounded-xl">
+                      {f.members_count} Jiwa
+                    </span>
+                    {can('keluarga', 'delete') && (
+                      <button
+                        onClick={() => setDeleteTarget({ id: f.id, name: f.family_name })}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                        title="Hapus / Arsipkan Keluarga"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
@@ -228,9 +262,9 @@ export default function KeluargaPage() {
                     <span className="text-slate-400">Telepon:</span>
                     <span className="text-slate-700">{f.phone || '-'}</span>
                   </div>
-                  <div className="flex items-start justify-between pt-0.5">
-                    <span className="text-slate-400">Alamat:</span>
-                    <span className="text-right text-slate-700 max-w-[200px] truncate">{f.address}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 pt-0.5">
+                    <span className="text-slate-400 shrink-0">Alamat:</span>
+                    <span className="sm:text-right text-slate-700 break-words">{f.address}</span>
                   </div>
                 </div>
 
@@ -337,6 +371,19 @@ export default function KeluargaPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Confirm Modal Hapus / Arsip Keluarga */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteFamily}
+        title="Arsipkan / Hapus Keluarga"
+        message={`Apakah Anda yakin ingin mengarsipkan data keluarga "${deleteTarget?.name}"? Data riwayat jemaat di dalamnya akan tetap aman tercatat dalam sistem.`}
+        confirmText="Ya, Arsipkan Data"
+        cancelText="Batalkan"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

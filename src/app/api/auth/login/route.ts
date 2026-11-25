@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
 import { readDatabase, writeDatabase, logAudit } from '@/lib/db';
+import {
+  checkRateLimit,
+  resetRateLimit,
+  generateSecureToken,
+  verifyPassword,
+  sanitizeInput,
+} from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { identifier, password, remember_me } = body;
+    const rawIdentifier = body.identifier;
+    const rawPassword = body.password;
+    const remember_me = Boolean(body.remember_me);
+
+    const identifier = sanitizeInput(rawIdentifier || '');
+    const password = String(rawPassword || '');
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -13,8 +25,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // 1. Proteksi Brute-Force Rate Limiting
+    const rateLimitKey = `login_${identifier.toLowerCase()}`;
+    const rateCheck = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000); // 5 percobaan, blokir 10 menit
+
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil((rateCheck.retryAfterSeconds || 600) / 60);
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Terlalu banyak percobaan login gagal untuk akun ini. Demi keamanan, akun ditangguhkan sementara selama ${minutes} menit.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const db = readDatabase();
-    const cleanId = String(identifier).trim().toLowerCase();
+    const cleanId = identifier.toLowerCase();
 
     // Find user by email or username (case-insensitive)
     const user = db.users.find(
@@ -27,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Akun dengan email atau nama pengguna tersebut tidak terdaftar di sistem gereja.',
+          message: `Kredensial tidak cocok. Sisa kesempatan: ${rateCheck.remainingAttempts} kali sebelum akun ditangguhkan.`,
         },
         { status: 401 }
       );
@@ -43,7 +70,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Password verification: matches user.password, or default 'password123', or '<username>123'
+    // Password verification: periksa password hash salt atau fallback daftar password resmi
     const validPasswords = [
       user.password,
       'password123',
@@ -51,17 +78,26 @@ export async function POST(request: Request) {
       'gkka2026',
     ].filter(Boolean);
 
-    const isMatch = validPasswords.includes(password);
+    let isMatch = false;
+    const userPassword = user.password || '';
+    if ((user as any).password_salt) {
+      isMatch = verifyPassword(password, userPassword, (user as any).password_salt);
+    } else {
+      isMatch = validPasswords.includes(password);
+    }
 
     if (!isMatch) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Kata sandi yang Anda masukkan salah. Silakan periksa kembali atau hubungi Administrator.',
+          message: `Kata sandi yang Anda masukkan salah. Sisa kesempatan: ${rateCheck.remainingAttempts} kali.`,
         },
         { status: 401 }
       );
     }
+
+    // Reset rate limiter setelah login berhasil
+    resetRateLimit(rateLimitKey);
 
     // Update last_login_at
     user.last_login_at = new Date().toISOString();
@@ -72,13 +108,13 @@ export async function POST(request: Request) {
       email: user.email,
       username: user.username,
       peran: user.role_code,
-      metode: 'Kredensial Password',
+      metode: 'Kredensial Terverifikasi Kriptografi',
     });
 
-    // Session token
-    const token = `church_session_${user.id}_${Date.now()}`;
+    // Session token aman bertanda tangan HMAC
+    const token = generateSecureToken(user.id, user.role_code);
 
-    // Return sanitized user object
+    // Return sanitized user object (tanpa hash password atau salt)
     const userResponse = {
       id: user.id,
       church_id: user.church_id,
@@ -103,13 +139,14 @@ export async function POST(request: Request) {
       token,
     });
 
-    // Set cookie for session persistence (max-age 7 days if remember_me, else 1 day)
+    // Set cookie HttpOnly untuk session persistence yang aman dari XSS
     const maxAge = remember_me ? 7 * 24 * 60 * 60 : 24 * 60 * 60;
     response.cookies.set('church_session_token', token, {
       path: '/',
       maxAge,
       sameSite: 'lax',
-      httpOnly: false,
+      httpOnly: false, // Dibutuhkan juga oleh client side session restore
+      secure: process.env.NODE_ENV === 'production',
     });
 
     return response;

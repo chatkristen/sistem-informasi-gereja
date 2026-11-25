@@ -284,9 +284,11 @@ export interface ChurchEvent {
   mc_member_id?: string;
   mc_name?: string; // MC / Worship Leader
   singers?: string[]; // SINGER (min 2 orang)
+  musicians?: string[]; // PEMAIN MUSIK (Bisa 1, 2, 3, 4 atau lebih)
   offering_officers?: string[]; // PETUGAS PERSEMBAHAN (min 2 orang)
   ushers?: string[]; // ASER (PENERIMA TAMU) (min 2 orang)
-  multimedia_officers?: string[]; // MULTIMEDIA
+  multimedia_officers?: string[]; // MULTIMEDIA (Bisa banyak orang)
+  sound_officers?: string[]; // SOUND SYSTEM
   budget: number;
   description: string;
   status: 'SCHEDULED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';

@@ -64,6 +64,9 @@ export async function POST(request: Request) {
       singers: Array.isArray(body.singers)
         ? body.singers.filter((s: string) => s && s.trim())
         : undefined,
+      musicians: Array.isArray(body.musicians)
+        ? body.musicians.filter((s: string) => s && s.trim())
+        : undefined,
       offering_officers: Array.isArray(body.offering_officers)
         ? body.offering_officers.filter((s: string) => s && s.trim())
         : undefined,
@@ -74,6 +77,11 @@ export async function POST(request: Request) {
         ? body.multimedia_officers.filter((s: string) => s && s.trim())
         : body.multimedia_officers
         ? [body.multimedia_officers]
+        : undefined,
+      sound_officers: Array.isArray(body.sound_officers)
+        ? body.sound_officers.filter((s: string) => s && s.trim())
+        : body.sound_officers
+        ? [body.sound_officers]
         : undefined,
       budget: Number(body.budget) || 0,
       description: body.description || '',
